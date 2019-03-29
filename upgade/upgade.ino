@@ -86,7 +86,7 @@ void loop() {
   //Serial.println("mm") ;                          //lecture de la valeur
                                       
   if(distance_mm <= 400) {
-    if (etatmoteur == A || etatmoteur == V){        //Detection MUrs
+    if (etatmoteur == A || etatmoteur == V){        //Detection Murs
       etatmoteur = T ;
       i=0 ;
       humeur = 1;                                   //pas contant
@@ -312,5 +312,4 @@ void ecran(int smile){
     }
   }
 
-
-
+  void 
