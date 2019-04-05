@@ -50,5 +50,5 @@ void loop()
   Serial.println(y);     
 
   // wait 10 milliseconds before the next loop
-  delay(10);    
+  delay(100);    
 }
