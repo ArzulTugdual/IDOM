@@ -1,9 +1,8 @@
 const byte PIN = 10;     // Broche capteur ultrason (envoie/réception)
-/*mesure la température ambiante*/
-float temperature()
-{
-  return 293.15;    //température ambiante en K
-}
+
+//variable de température
+float t;
+
 void setup() 
 {
   Serial.begin(9600);
@@ -13,7 +12,7 @@ void setup()
 
 void loop()
 {
-  float t = temperature();    //récupération de la température avec la fonction temperature
+  t = temperature();    //récupération de la température avec la fonction temperature
   
   Serial.print(mesure_distance(t));                 
   Serial.println("mm");                          //lecture de la valeur;
@@ -41,4 +40,9 @@ float mesure_distance(float temp)
   
   measure = pulseIn(PIN, HIGH, 25000UL);  //attente du signal retour puis calcul du temps de réponse en microsec
   return measure / 2.0 * c;               //MESURE en mm
+}
+/*mesure la température ambiante*/
+float temperature()
+{
+  return 293.15;    //température ambiante en K
 }
