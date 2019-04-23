@@ -124,4 +124,32 @@ void tg(int speedMMPS,int uptime, int duration, boolean debug)
   Omni.delayMS(duration,debug);
   Omni.setCarSlow2Stop(uptime);
  }
+ void dhd(int speedMMPS,int uptime, int duration, boolean debug)
+ {
+  Omni.setCarUpperRight();
+  Omni.setCarSpeedMMPS(speedMMPS,uptime);
+  Omni.delayMS(duration,debug);
+  Omni.setCarSlow2Stop(uptime);
+ }
+ void dbd(int speedMMPS,int uptime, int duration, boolean debug)
+ {
+  Omni.setCarLowerRight();
+  Omni.setCarSpeedMMPS(speedMMPS,uptime);
+  Omni.delayMS(duration,debug);
+  Omni.setCarSlow2Stop(uptime);
+ }
+ void dhg(int speedMMPS,int uptime, int duration, boolean debug)
+ {
+  Omni.setCarUpperLeft();
+  Omni.setCarSpeedMMPS(speedMMPS,uptime);
+  Omni.delayMS(duration,debug);
+  Omni.setCarSlow2Stop(uptime);
+ }
+ void dbg(int speedMMPS,int uptime, int duration, boolean debug)
+ {
+  Omni.setCarLowerLeft();
+  Omni.setCarSpeedMMPS(speedMMPS,uptime);
+  Omni.delayMS(duration,debug);
+  Omni.setCarSlow2Stop(uptime);
+ }
  
