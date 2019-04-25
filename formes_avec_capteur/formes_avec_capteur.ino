@@ -56,30 +56,92 @@ MotorWheel wheel4(10,7,18,19,&irq4);
 
 Omni4WD Omni(&wheel1,&wheel2,&wheel3,&wheel4);
 
+const int speedMMPS=40;
+const int tps_arret=1500;
+const int duration=500;
+const boolean debug=false;
+//seuil distance
+const float seuil;
+
+//mode (av, re...)
+String mode = "av";
+
 void setup() {
   //TCCR0B=TCCR0B&0xf8|0x01;    // warning!! it will change millis()
   TCCR1B=TCCR1B&0xf8|0x01;    // Pin9,Pin10 PWM 31250Hz
   TCCR2B=TCCR2B&0xf8|0x01;    // Pin3,Pin11 PWM 31250Hz
 
   Omni.PIDEnable(0.31,0.01,0,10);
-    
+
+  //capteur ultrason
+  Serial.begin(9600);
+  pinMode(PIN, OUTPUT);
+  digitalWrite(PIN, LOW); // La broche doit être à LOW au repos
 }
 
 void loop() {
-  const int speedMMPS=40;
-  const int uptime=1500;
-  const int duration=500;
-  const boolean debug=false;
+  float distance = mesure_distance();
+  switch(mode)
+  {
+    case "av":
+    if(distance<
+  }
   av(speedMMPS,uptime,duration,debug);
   g(speedMMPS,uptime,duration,debug);
   re(speedMMPS,uptime,duration,debug);
   d(speedMMPS,uptime,duration,debug);
   td(speedMMPS,500,500,debug);
- 
- 
-    
 }
 
+//mesure la distance entre le robot et le prochain obstacle devant
+float mesure_distance()
+{
+  //capteur parallax (3 broches)
+  /*création des variables de résultat*/
+  float measure, distance_mm;
+  //float c = 20.05*sqrt(temp)*pow(10,-3);   //vitesse du son dans l'air en fonction de la température en mm/microsec
+  float c = 0.34;
+  
+  pinMode(PIN_ultrason, OUTPUT);       //broche en sortie pour envoyer l'impulsion
+  digitalWrite(PIN_ultrason, LOW);     // La broche doit être à LOW au départ
+  
+  /*impulsion de 10 microsecondes*/
+  digitalWrite(PIN_ultrason, HIGH);      
+  delayMicroseconds(10);
+  digitalWrite(PIN_ultrason, LOW);       //envoi de l'onde sonore ___---___
+
+  pinMode(PIN_ultrason, INPUT);          //broche en entrée en attente de l'impulsion
+  
+  measure = pulseIn(PIN_ultrason, HIGH, 25000UL);  //attente du signal retour puis calcul du temps de réponse en microsec
+  return measure / 2.0 * c;               //MESURE en mm
+}
+
+ void bouge(String mode, int speedMMPS, boolean debug)
+ {
+  switch(mode)
+  {
+    case "av":
+    av(speedMMPS,0,0,debug);
+    case "re":
+    re(speedMMPS,0,0,debug);
+    case "d":
+    d(speedMMPS,0,0,debug);
+    case "g":
+    g(speedMMPS,0,0,debug);
+    case "td":
+    td(speedMMPS,0,0,debug);
+    case "tg":
+    tg(speedMMPS,0,0,debug);
+    case "dhd":
+    dhd(speedMMPS,0,0,debug);
+    case "dhg":
+    dhg(speedMMPS,0,0,debug);
+    case "dbd":
+    dbd(speedMMPS,0,0,debug);
+    case "dbg":
+    dbg(speedMMPS,0,0,debug);
+  }
+ }
  void av(int speedMMPS,int uptime, int duration, boolean debug)
  {
   Omni.setCarAdvance();
