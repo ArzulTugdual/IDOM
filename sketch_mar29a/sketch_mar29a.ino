@@ -66,15 +66,11 @@ void setup() {
 }
 
 void loop() {
-  const int speedMMPS=40;
-  const int uptime=1500;
-  const int duration=500;
-  const boolean debug=false;
-  av(speedMMPS,uptime,duration,debug);
-  g(speedMMPS,uptime,duration,debug);
-  re(speedMMPS,uptime,duration,debug);
-  d(speedMMPS,uptime,duration,debug);
-  td(speedMMPS,500,500,debug);
+  tg(30,1500,500,false);
+  td(30,500,1500,false);
+  
+  
+ 
  
  
     
@@ -117,20 +113,7 @@ void td(int speedMMPS,int uptime, int duration, boolean debug)
   Omni.delayMS(duration,debug);
   Omni.setCarSlow2Stop(uptime);
  }
- void td(int angle)
- {
- Omni.setCarRotateRightAngle(40,angle);//?
-  Omni.setCarSpeedMMPS(speedMMPS,uptime);
-  Omni.delayMS(duration,debug);
-  Omni.setCarSlow2Stop(uptime);
- }
-  void tg(int angle)
- {
-  Omni.setCarRotateLeftAngle(40,angle);//?
-  Omni.setCarSpeedMMPS(speedMMPS,uptime);
-  Omni.delayMS(duration,debug);
-  Omni.setCarSlow2Stop(uptime);
- }
+
 void tg(int speedMMPS,int uptime, int duration, boolean debug)
  {
   Omni.setCarRotateLeft();
@@ -174,7 +157,7 @@ void tg(int speedMMPS,int uptime, int duration, boolean debug)
   const int uptime=distance*1000/speedMMPS;
   const int duration=500;
   const boolean debug=false;
-   av(speedMMPS,uptime,duration,debug);
+  av(speedMMPS,uptime,duration,debug);
   g(speedMMPS,uptime,duration,debug);
   re(speedMMPS,uptime,duration,debug);
   d(speedMMPS,uptime,duration,debug); 
@@ -188,11 +171,11 @@ void tg(int speedMMPS,int uptime, int duration, boolean debug)
   const int duration=500;
   const boolean debug=false;
    av(speedMMPS,uptime,duration,debug);
-  td(90);
+  td(speedMMPS,uptime,duration,debug);
   av(speedMMPS,uptime,duration,debug);
-   td(90);
+   td(speedMMPS,uptime,duration,debug);
   av(speedMMPS,uptime,duration,debug);
-   td(90);
+   td(speedMMPS,uptime,duration,debug);
   av(speedMMPS,uptime,duration,debug);
  }
  //pour le rond voir les choses deja faite dans R2wd
