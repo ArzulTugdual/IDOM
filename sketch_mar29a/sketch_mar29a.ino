@@ -66,9 +66,9 @@ void setup() {
 }
 
 void loop() {
-  tg(30,1500,500,false);
-  td(30,500,1500,false);
   
+  td(37,500,10,false);
+
   
  
  
@@ -194,4 +194,16 @@ void tg(int speedMMPS,int uptime, int duration, boolean debug)
   re(speedMMPS,uptime1,duration,debug);
   d(speedMMPS,uptime2,duration,debug); 
  }
+ 
+ void cercle(){
+ 
+ while(true){
+ const int speedMMPS=40;
+  const int duration=10;
+  const boolean debug=false;
+  td(speedMMPS,0,duration,debug);
+  av(speedMMPS,0,duration,debug);
+  }
+ }
+  
  
