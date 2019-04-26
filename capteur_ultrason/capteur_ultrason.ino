@@ -1,4 +1,4 @@
-const byte PIN = 10;     // Broche capteur ultrason (envoie/réception)
+const byte PIN = 2;     // Broche capteur ultrason (envoie/réception)
 
 //variable de température
 float t;

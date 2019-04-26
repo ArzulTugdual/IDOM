@@ -1,4 +1,3 @@
-
 #include <PinChangeInt.h>
 #include <PinChangeIntConfig.h>
 #include <EEPROM.h>
@@ -11,7 +10,7 @@
 #include <fuzzy_table.h>
 #include <PID_Beta6.h>
 
-
+const byte PIN_ultrason = 2;     // Broche capteur ultrason (envoie/réception)
 /*
 
             \                    /
@@ -56,15 +55,17 @@ MotorWheel wheel4(10,7,18,19,&irq4);
 
 Omni4WD Omni(&wheel1,&wheel2,&wheel3,&wheel4);
 
+/*variables*/
 const int speedMMPS=40;
 const int tps_arret=1500;
-const int duration=500;
 const boolean debug=false;
-//seuil distance
-const float seuil;
-
-//mode (av, re...)
-String mode = "av";
+//seuil distance (mm)
+const float seuil=200;
+//compteur distance parcourue
+const int dinit=500;
+int compt=dinit;
+//mode av:1; re:2; g:3; d:4; td:5
+int mode = 1;
 
 void setup() {
   //TCCR0B=TCCR0B&0xf8|0x01;    // warning!! it will change millis()
@@ -73,24 +74,105 @@ void setup() {
 
   Omni.PIDEnable(0.31,0.01,0,10);
 
+  //initialise le robot en avant
+  Omni.setCarAdvance();
+  
   //capteur ultrason
   Serial.begin(9600);
-  pinMode(PIN, OUTPUT);
-  digitalWrite(PIN, LOW); // La broche doit être à LOW au repos
+  pinMode(PIN_ultrason, OUTPUT);
+  digitalWrite(PIN_ultrason, LOW); // La broche doit être à LOW au repos
 }
 
 void loop() {
-  float distance = mesure_distance();
+  
+  float distance_mur = mesure_distance();
+  
   switch(mode)
   {
-    case "av":
-    if(distance<
+    case 1:
+    {
+      if(distance_mur>seuil && compt>0)
+      {
+        compt--;
+      }
+      else
+      {
+        Omni.setCarStop(0);
+        mode=3;
+        Omni.setCarLeft();
+        compt=dinit;
+      }
+    }    
+    break;
+    case 2:
+    {
+      if(compt>0)
+      {
+        compt--;
+      }
+      else
+      {
+        Omni.setCarStop(0);
+        mode=4;
+        Omni.setCarRight();
+        compt=dinit;
+      }
+    }
+    break;
+    case 3:
+    {
+      if(compt>0)
+      {
+        compt--;
+      }
+      else
+      {
+        Omni.setCarStop(0);
+        mode=2;
+        Omni.setCarBackoff();
+        compt=dinit;
+      }
+    }    
+    break;
+    case 4:
+    {
+      if(compt>0)
+      {
+        compt--;
+      }
+      else
+      {
+        Omni.setCarStop(0);
+        mode=5;
+        Omni.setCarRotateRight();
+        compt=dinit;
+      }
+    }    
+    break;
+    default:
+    {
+      if(compt>0)
+      {
+        compt--;
+      }
+      else
+      {
+        Omni.setCarStop(0);
+        mode=1;
+        Omni.setCarAdvance();
+        compt=dinit;
+      }
+    }    
+    break;
   }
-  av(speedMMPS,uptime,duration,debug);
+  //activer le robot avec la vitesse (speedMMPS en mm/s)
+  Omni.setCarSpeedMMPS(speedMMPS,0);
+  Omni.delayMS(5,debug);
+/*  av(speedMMPS,uptime,duration,debug);
   g(speedMMPS,uptime,duration,debug);
   re(speedMMPS,uptime,duration,debug);
   d(speedMMPS,uptime,duration,debug);
-  td(speedMMPS,500,500,debug);
+  td(speedMMPS,500,500,debug);*/
 }
 
 //mesure la distance entre le robot et le prochain obstacle devant
@@ -115,34 +197,7 @@ float mesure_distance()
   measure = pulseIn(PIN_ultrason, HIGH, 25000UL);  //attente du signal retour puis calcul du temps de réponse en microsec
   return measure / 2.0 * c;               //MESURE en mm
 }
-
- void bouge(String mode, int speedMMPS, boolean debug)
- {
-  switch(mode)
-  {
-    case "av":
-    av(speedMMPS,0,0,debug);
-    case "re":
-    re(speedMMPS,0,0,debug);
-    case "d":
-    d(speedMMPS,0,0,debug);
-    case "g":
-    g(speedMMPS,0,0,debug);
-    case "td":
-    td(speedMMPS,0,0,debug);
-    case "tg":
-    tg(speedMMPS,0,0,debug);
-    case "dhd":
-    dhd(speedMMPS,0,0,debug);
-    case "dhg":
-    dhg(speedMMPS,0,0,debug);
-    case "dbd":
-    dbd(speedMMPS,0,0,debug);
-    case "dbg":
-    dbg(speedMMPS,0,0,debug);
-  }
- }
- void av(int speedMMPS,int uptime, int duration, boolean debug)
+ /*void av(int speedMMPS,int uptime, int duration, boolean debug)
  {
   Omni.setCarAdvance();
   Omni.setCarSpeedMMPS(speedMMPS,uptime);
@@ -214,4 +269,4 @@ void tg(int speedMMPS,int uptime, int duration, boolean debug)
   Omni.delayMS(duration,debug);
   Omni.setCarSlow2Stop(uptime);
  }
- 
+ */
