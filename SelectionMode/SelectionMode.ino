@@ -1,42 +1,28 @@
-#define boutonS15 A7
+#define boutonS1_5 A7
 #define boutonS6 2
 
 void setup()
 {
     Serial.begin(9600);//test
      
-    pinMode(boutonS15,INPUT);//pin correspondant aux figures programmées sur les boutons S1 à S5
+    pinMode(boutonS1_5,INPUT);//pin correspondant aux figures programmées sur les boutons S1 à S5
     pinMode(boutonS6,INPUT);//pin correspondant au mode joystick quand à 0 et au mode figure quant à 1
 }
 
 int Bouton(){
-    float etatS15=analogRead(boutonS15);
-    int bouton;
-    if((etatS15)>=0 && (etatS15)<=1){
-      bouton=1;
-    }
-    else if((etatS15)>1 && (etatS15)<=2){
-      bouton=2;
-    }
-    else if((etatS15)>2 && (etatS15)<=3){
-      bouton=3;
-    }
-    else if((etatS15)>3 && (etatS15)<=4){
-      bouton=4;
-    }
-    else if((etatS15)>4 && (etatS15)<=5){
-      bouton=5;
-    }
+    int bouton = (analogRead(boutonS1_5)+102)/204;//renvoie la valeur du bouton pressé
     return bouton;
 }
 
 void loop()
 {
-    const float etatS15=analogRead(boutonS15);
-    boolean etatS6=digitalRead(boutonS6);
-    const int bouton = Bouton();
-    
-    if(etatS6==HIGH){                               //mode boutons (figures)
+    boolean etatS6 = digitalRead(boutonS6);
+    int bouton = Bouton();
+
+    if(etatS6==LOW){                                      //mode manuel (joystick)
+    Serial.println("Mode Joystick");//test
+    }
+    else if(etatS6==HIGH){                               //mode boutons (figures)
     Serial.println("Mode Boutons");//test
         if(etatS6==HIGH && bouton==1){
             //appel fonction carré sans rotation
@@ -58,8 +44,5 @@ void loop()
             //appel fonction losange
             Serial.println("Losange");//test
         }
-    }
-    else if(etatS6==LOW){                                      //mode manuel (joystick)
-    Serial.println("Mode Joystick");//test
     }
 }
