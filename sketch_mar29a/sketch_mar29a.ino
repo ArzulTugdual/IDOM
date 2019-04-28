@@ -66,12 +66,7 @@ void setup() {
 }
 
 void loop() {
-  
-  td(37,500,10,false);
 
-  
- 
- 
  
     
 }
@@ -113,6 +108,31 @@ void td(int speedMMPS,int uptime, int duration, boolean debug)
   Omni.delayMS(duration,debug);
   Omni.setCarSlow2Stop(uptime);
  }
+ void td(int taille)
+ {
+  int uptime =500;
+  boolean debug = false;
+  int speedMMPS = 37; 
+  int duration = 3600 ;
+  switch  (taille) {
+    case 90 :  
+  duration = 500; break;
+    case 45 :
+  duration =10;
+  
+   break;
+   default : break;
+  
+
+  }
+  Omni.setCarRotateRight();
+  Omni.setCarSpeedMMPS(speedMMPS,uptime);
+  Omni.delayMS(duration,debug);
+  Omni.setCarSlow2Stop(uptime);
+  
+ }
+
+
 
 void tg(int speedMMPS,int uptime, int duration, boolean debug)
  {
@@ -120,6 +140,27 @@ void tg(int speedMMPS,int uptime, int duration, boolean debug)
   Omni.setCarSpeedMMPS(speedMMPS,uptime);
   Omni.delayMS(duration,debug);
   Omni.setCarSlow2Stop(uptime);
+ }
+ void tg(int taille)
+ {
+  int uptime =500;
+  boolean debug = false;
+  int speedMMPS = 37; 
+  int duration =3600 ;
+  switch  (taille) {
+  case 90 : 
+  break; 
+  duration = 500;
+  case 45 :
+  duration =10; break;
+   default :  break;
+
+  }
+  Omni.setCarRotateLeft();
+  Omni.setCarSpeedMMPS(speedMMPS,uptime);
+  Omni.delayMS(duration,debug);
+  Omni.setCarSlow2Stop(uptime);
+  
  }
  void dhd(int speedMMPS,int uptime, int duration, boolean debug)
  {
@@ -154,28 +195,29 @@ void tg(int speedMMPS,int uptime, int duration, boolean debug)
  a ajuster pour avoir un carré de 20 cm avec d=v*t
 */
  const int speedMMPS=40;
-  const int uptime=distance*1000/speedMMPS;
-  const int duration=500;
+  const int uptime=1000;
+  const int duration=distance*1000/speedMMPS;
   const boolean debug=false;
   av(speedMMPS,uptime,duration,debug);
   g(speedMMPS,uptime,duration,debug);
   re(speedMMPS,uptime,duration,debug);
   d(speedMMPS,uptime,duration,debug); 
  }
-  void carreavecrotation(int distance){
+  void carreavecrotation(){
  /*
  a ajuster pour avoir un carré de 20 cm avec d=v*t
 */
  const int speedMMPS=40;
-  const int uptime=distance*100/speedMMPS;
-  const int duration=500;
+  const int uptime=500;
+  const int duration=700;
   const boolean debug=false;
+ 
    av(speedMMPS,uptime,duration,debug);
-  td(speedMMPS,uptime,duration,debug);
+  td(90);
   av(speedMMPS,uptime,duration,debug);
-   td(speedMMPS,uptime,duration,debug);
+   td(90);
   av(speedMMPS,uptime,duration,debug);
-   td(speedMMPS,uptime,duration,debug);
+   td(90);
   av(speedMMPS,uptime,duration,debug);
  }
  //pour le rond voir les choses deja faite dans R2wd
@@ -194,16 +236,24 @@ void tg(int speedMMPS,int uptime, int duration, boolean debug)
   re(speedMMPS,uptime1,duration,debug);
   d(speedMMPS,uptime2,duration,debug); 
  }
- 
- void cercle(){
+  void cercle(int diametre){
  
  while(true){
- const int speedMMPS=40;
+  int compteur =0;
+  
+  
+ while(compteur!=diametre*500){
+  const int speedMMPS=40;
   const int duration=10;
   const boolean debug=false;
-  td(speedMMPS,0,duration,debug);
+    td(speedMMPS,0,duration,debug);
   av(speedMMPS,0,duration,debug);
+  compteur++;
+
   }
  }
   
+ 
+
+  }
  
