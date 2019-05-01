@@ -29,8 +29,9 @@ Omni4WD Omni(&wheel1,&wheel2,&wheel3,&wheel4);
 
 /*variables*/
 const int speedMMPS=40;
-const int tps_arret=1500;
+const int tps_arret=3000;
 const boolean debug=false;
+const int tps_etat=1500;
 //seuil distance (mm)
 const float seuil=200;
 
@@ -41,7 +42,7 @@ void setup() {
   Omni.PIDEnable(0.31,0.01,0,10);
 
   //initialise le robot en avant
-  Omni.setCarAdvance(speedMMPS);
+  Omni.setCarAdvance();
   
   //capteur ultrason
   Serial.begin(9600);
@@ -54,10 +55,12 @@ void loop() {
   
   if(distance_mur < seuil)
   {
-    Omni.setCarBackoff(speedMMPS);
+    Omni.setCarSlow2Stop(100);
+    Omni.delayMS(tps_arret,debug);
+    Omni.setCarBackoff();
   }
   Omni.setCarSpeedMMPS(speedMMPS,0);
-  //Omni.delayMS(20,debug);
+  Omni.delayMS(tps_etat,debug);
 }
 
 //mesure la distance entre le robot et le prochain obstacle devant
