@@ -6,7 +6,6 @@
 #include <PID_Beta6.h>
 #include <MotorWheel.h>
 #include <Omni4WD.h>
-
 #include <fuzzy_table.h>
 #include <PID_Beta6.h>
 
@@ -31,9 +30,11 @@ Omni4WD Omni(&wheel1,&wheel2,&wheel3,&wheel4);
 const int speedMMPS=40;
 const int tps_arret=3000;
 const boolean debug=false;
-const int tps_etat=1500;
+const int tps_etat=500;
 //seuil distance (mm)
-const float seuil=200;
+const float seuil=500;
+
+boolean etat = true;
 
 void setup() {
   TCCR1B=TCCR1B&0xf8|0x01;    // Pin9,Pin10 PWM 31250Hz
@@ -43,6 +44,7 @@ void setup() {
 
   //initialise le robot en avant
   Omni.setCarAdvance();
+  Omni.setCarSpeedMMPS(speedMMPS);
   
   //capteur ultrason
   Serial.begin(9600);
@@ -52,15 +54,25 @@ void setup() {
 
 void loop() {
   float distance_mur = mesure_distance();
-  
-  if(distance_mur < seuil)
+
+  //Serial.println(distance_mur);
+  //delay(500);
+  if(etat && distance_mur != 0 &&  distance_mur < seuil)
   {
-    Omni.setCarSlow2Stop(100);
-    Omni.delayMS(tps_arret,debug);
-    Omni.setCarBackoff();
+    Omni.setCarSlow2Stop(750);
+    Omni.setCarStop();
+    etat = false;
+    //Omni.delayMS(tps_arret,debug);
+    /*Omni.setCarBackoff();
+    Omni.setCarSpeedMMPS(speedMMPS);
+    Omni.delayMS(5000,debug);
+    Omni.setCarAdvance();
+    Omni.setCarSpeedMMPS(speedMMPS);*/
   }
-  Omni.setCarSpeedMMPS(speedMMPS,0);
   Omni.delayMS(tps_etat,debug);
+  //Omni.setCarSlow2Stop(100);
+  //Omni.setCarSpeedMMPS(speedMMPS,0);
+  //Omni.delayMS(tps_etat,debug);
 }
 
 //mesure la distance entre le robot et le prochain obstacle devant
@@ -69,7 +81,7 @@ float mesure_distance()
   //capteur parallax (3 broches)
   /*création des variables de résultat*/
   float measure, distance_mm;
-  //float c = 20.05*sqrt(temp)*pow(10,-3);   //vitesse du son dans l'air en fonction de la température en mm/microsec
+  //float c = 20.05*sqrt(temp)*pow(10,-3);   //vitesse du son dans l'air en fonction de la température (en mm/microsec)
   float c = 0.34;
   
   pinMode(PIN_ultrason, OUTPUT);       //broche en sortie pour envoyer l'impulsion
