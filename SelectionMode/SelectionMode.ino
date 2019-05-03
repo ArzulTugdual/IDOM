@@ -25,10 +25,24 @@ void loop()
 
     //
     if(etatS6==HIGH){
-      flag=flag*(-1);
+      int f1=0;
+      if (f1%2==0){
+        flag=flag*(-1);
+        f1++;
+      }
+      else if (f1%2!=0){
+        flag=flag;
+      }
     }
     else if(etatS6==LOW){
-      flag=flag*(-1);
+      int f2=0;
+      if (f2%2==0){
+        flag=flag*(-1);
+        f2++;
+      }
+      else if (f2%2!=0){
+        flag=flag;
+      }
     }
     
     /*  Mode BOUTONS   */
