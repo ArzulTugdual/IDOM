@@ -6,8 +6,6 @@
 #include <PID_Beta6.h>
 #include <MotorWheel.h>
 #include <Omni4WD.h>
-#include <fuzzy_table.h>
-#include <PID_Beta6.h>
 
 const byte PIN_ultrason = 2;     // Broche capteur ultrason (envoie/réception)
 
@@ -32,7 +30,7 @@ const int tps_arret=3000;
 const boolean debug=false;
 const int tps_etat=500;
 //seuil distance (mm)
-const float seuil=500;
+const float seuil=50;
 
 boolean etat = true;
 
@@ -43,8 +41,7 @@ void setup() {
   Omni.PIDEnable(0.31,0.01,0,10);
 
   //initialise le robot en avant
-  Omni.setCarAdvance();
-  Omni.setCarSpeedMMPS(speedMMPS);
+  //av(40);
   
   //capteur ultrason
   Serial.begin(9600);
@@ -53,26 +50,14 @@ void setup() {
 }
 
 void loop() {
-  float distance_mur = mesure_distance();
-
-  //Serial.println(distance_mur);
-  //delay(500);
-  if(etat && distance_mur != 0 &&  distance_mur < seuil)
+  if(etat)
   {
-    Omni.setCarSlow2Stop(750);
-    Omni.setCarStop();
-    etat = false;
-    //Omni.delayMS(tps_arret,debug);
-    /*Omni.setCarBackoff();
-    Omni.setCarSpeedMMPS(speedMMPS);
-    Omni.delayMS(5000,debug);
-    Omni.setCarAdvance();
-    Omni.setCarSpeedMMPS(speedMMPS);*/
+    av(40);
+    etat=false;
   }
-  Omni.delayMS(tps_etat,debug);
-  //Omni.setCarSlow2Stop(100);
-  //Omni.setCarSpeedMMPS(speedMMPS,0);
-  //Omni.delayMS(tps_etat,debug);
+  float distance_mur = mesure_distance();
+  if(distance_mur != 0 &&  distance_mur < seuil) stop_motors();
+  else if(distance_mur > seuil || distance_mur == 0) av(40);
 }
 
 //mesure la distance entre le robot et le prochain obstacle devant
@@ -96,4 +81,18 @@ float mesure_distance()
   
   measure = pulseIn(PIN_ultrason, HIGH, 25000UL);  //attente du signal retour puis calcul du temps de réponse en microsec
   return measure / 2.0 * c;               //MESURE en mm
+}
+void av(int rapportPWM)
+{
+  wheel1.advancePWM(rapportPWM);
+  wheel2.advancePWM(rapportPWM);
+  wheel3.backoffPWM(rapportPWM);
+  wheel4.backoffPWM(rapportPWM);
+}
+void stop_motors()
+{
+  wheel1.advancePWM(0);
+  wheel2.advancePWM(0);
+  wheel3.backoffPWM(0);
+  wheel4.backoffPWM(0);
 }
