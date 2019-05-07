@@ -1,8 +1,8 @@
 #define boutonS1_5 A7
 #define boutonS6 2
-int etatS6 = digitalRead(boutonS6);   //Variable pour l'état actuel du bouton poussoir
-int etatS6_prec = LOW;  //Variable pour l'état précédent du bouton poussoir
-int flag=1;
+int etatS6 = HIGH;   //Variable pour l'état actuel du bouton poussoir
+int flag=0;
+int ind=1;
 
 void setup()
 {
@@ -20,34 +20,36 @@ int Bouton(){
 void loop()
 {
     // lit l'état actuel du bouton poussoir S6 et le mémorise dans la variable
-    //etatS6 = digitalRead(boutonS6);
+    etatS6 = digitalRead(boutonS6);
     int bouton = Bouton();
 
-    //
+    //flag qui permet de différencier les 2 modes
+    /*if(etatS6==HIGH){
+        flag=flag*(-1);
+    }
+    if(etatS6==LOW){
+        flag=flag*(1);
+    }*//*
     if(etatS6==HIGH){
-      int f1=0;
-      if (f1%2==0){
+      if(f1%2==0){
         flag=flag*(-1);
         f1++;
       }
-      else if (f1%2!=0){
-        flag=flag;
+      else{
+        flag=flag*(1);
+        f1++;
       }
-    }
-    else if(etatS6==LOW){
-      int f2=0;
-      if (f2%2==0){
-        flag=flag*(-1);
-        f2++;
-      }
-      else if (f2%2!=0){
-        flag=flag;
-      }
+    }*/
+    /*if(etatS6==LOW){
+        flag=flag*(1);
+    }*/
+
+    if(etatS6==LOW){
+        ind==ind*(-1);
     }
     
     /*  Mode BOUTONS   */
-    //if(etatS6 != etatS6_prec){
-    if(etatS6==HIGH && flag==1){
+    if(etatS6==HIGH && ind==1){
     Serial.println("Mode Boutons");//test
     delay(1000);
     /*    if(etatS6==HIGH && bouton==0){
@@ -75,17 +77,12 @@ void loop()
             Serial.println("->  Losange");//test
             delay(1000);
         }*/
-    //}
-    //etatS6_prec = LOW;
     }
     
 
     /*  Mode JOYSTICK   */
-    //if(etatS6 == etatS6_prec){
-    if(etatS6==HIGH && flag=-1){
-    Serial.println("Mode Joystick");//test
-    delay(1000);
-    //}
-    //etatS6_prec = HIGH;
+    if(etatS6==HIGH && ind==-1){
+        Serial.println("Mode Joystick");//test
+        delay(1000);
     }
 }
