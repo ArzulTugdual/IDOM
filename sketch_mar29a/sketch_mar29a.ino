@@ -40,7 +40,7 @@ MotorWheel wheel3(9,8,16,17,&irq3);
 irqISR(irq4,isr4);
 MotorWheel wheel4(10,11,18,19,&irq4);
  */
-
+ int compteur =0;
 irqISR(irq1,isr1);
 MotorWheel wheel1(3,2,4,5,&irq1);
 
@@ -52,7 +52,7 @@ MotorWheel wheel3(9,8,16,17,&irq3);
 
 irqISR(irq4,isr4);
 MotorWheel wheel4(10,7,18,19,&irq4);
-
+int value =0;
 
 Omni4WD Omni(&wheel1,&wheel2,&wheel3,&wheel4);
 
@@ -67,24 +67,30 @@ void setup() {
 
 void loop() {
 
-  int compteur =0;
-  
-  
- while(compteur!=diametre*500){
-  const int speedMMPS=40;
-  const int duration=10;
-  const boolean debug=false;
-    td(speedMMPS,0,duration,debug);
-  av(speedMMPS,0,duration,debug);
-  compteur++;
+if(value==0){
+ carreavecrotation(4);
+ delay(1000);
+ triangle();
+ delay(1000);
+ cercle();
+ value ++;
+ }
+
+stopp(5000);
+   
+   
 
   
  }
  
-
- av(40,1000,4000,false);
-Omni.delayMS(1000,false);
+void stopp(int tps){
+wheel1.advancePWM(0);
+  wheel2.advancePWM(0);
+  wheel3.advancePWM(0);
+  wheel4.advancePWM(0);
+  delay(tps);
 }
+
  void av(int speedMMPS,int uptime, int duration, boolean debug)
  {
   Omni.setCarAdvance();
@@ -127,7 +133,7 @@ void td(int speedMMPS,int uptime, int duration, boolean debug)
   int uptime =500;
   boolean debug = false;
   int speedMMPS = 37; 
-  int duration = 3600 ;
+  int duration = 3650 ;
   switch  (taille) {
     case 90 :  
   duration = 500; break;
@@ -204,11 +210,11 @@ void td(int speedMMPS,int uptime, int duration, boolean debug)
   Omni.delayMS(duration,debug);
   Omni.setCarSlow2Stop(uptime);
  }
- void carresansrotation(int tpscoté){
+ void carresansrotation(int tpscote){
 
  const int speedMMPS=40;
   const int uptime=500;
-  const int duration=tpscoté-uptime;
+  const int duration=tpscote*1000-uptime;
   const boolean debug=false;
   av(speedMMPS,uptime,duration,debug);
   g(speedMMPS,uptime,duration,debug);
@@ -220,25 +226,26 @@ void td(int speedMMPS,int uptime, int duration, boolean debug)
 
 const int speedMMPS=40;
   const int uptime=500;
-  const int duration=1500;
+  const int duration=2500;
   const boolean debug=false;
+  
+  td(45);
+  td(90);
+  
+  av(speedMMPS,uptime,duration,debug);
+  td(90);
   av(speedMMPS,uptime,duration,debug);
   td(45);
   td(90);
   av(speedMMPS,uptime,duration,debug);
-  td(90);
-  av(speedMMPS,uptime,duration,debug);
-  td(45);
-  td(90);
-
   
  }
-  void carreavecrotation(int tpscoté){
+  void carreavecrotation(int tpscote){
 
 
  const int speedMMPS=40;
   const int uptime=500;
-  const int duration=tpscoté-uptime;
+  const int duration=tpscote*1000-uptime;
   const boolean debug=false;
  
    av(speedMMPS,uptime,duration,debug);
@@ -253,7 +260,7 @@ const int speedMMPS=40;
  
  void rectanglesansrotation(int tmpslargeur,int tmpslongueur){
 
-  int tmpslargeur
+
  const int speedMMPS=40;
   const int uptime=500;
 
@@ -265,23 +272,19 @@ const int speedMMPS=40;
   re(speedMMPS,uptime,duration1,debug);
   d(speedMMPS,uptime,duration2,debug); 
  }
-  void cercle(int diametre){
+  void cercle(){
  
 
-  int compteur =0;
+ 
   
   
- while(compteur!=diametre*500){
-  const int speedMMPS=40;
-  const int duration=10;
-  const boolean debug=false;
-    td(speedMMPS,0,duration,debug);
-  av(speedMMPS,0,duration,debug);
-  compteur++;
 
-  
- }
-  
+ wheel1.advancePWM(55);
+  wheel2.advancePWM(55);
+  wheel3.backoffPWM(3);
+  wheel4.backoffPWM(3);
+ delay(14000);
+
  
 
   }
