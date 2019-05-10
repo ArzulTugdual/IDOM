@@ -121,12 +121,12 @@ void td(int taille)
   int speedMMPS = 37; 
   int duration = 3650 ;
   switch  (taille) {
-    case 90 :  
+  case 90 :  
   duration = 500; break;
-    case 45 :
+  case 45 :
   duration =10; 
-   break;
-   default : break;
+  break;
+  default : break;
   }
   Omni.setCarRotateRight();
   Omni.setCarSpeedMMPS(speedMMPS,uptime);
@@ -144,7 +144,7 @@ void tg(int taille)
   duration = 500; break;
   case 45 :
   duration =10; break;
-   default :  break;
+  default :  break;
   }
   Omni.setCarRotateLeft();
   Omni.setCarSpeedMMPS(speedMMPS,uptime);
@@ -210,12 +210,12 @@ void carreavecrotation(int tpscote){
   const int uptime=500;
   const int duration=tpscote*1000-uptime;
   const boolean debug=false;
-   av(speedMMPS,uptime,duration,debug);
+  av(speedMMPS,uptime,duration,debug);
   td(90);
   av(speedMMPS,uptime,duration,debug);
-   td(90);
+  td(90);
   av(speedMMPS,uptime,duration,debug);
-   td(90);
+  td(90);
   av(speedMMPS,uptime,duration,debug);
 }
 void rectanglesansrotation(int tmpslargeur,int tmpslongueur){
@@ -224,7 +224,7 @@ void rectanglesansrotation(int tmpslargeur,int tmpslongueur){
   const int duration1=tmpslargeur*1000-uptime;
   const int duration2=tmpslongueur*1000-uptime;
   const boolean debug=false;
-    av(speedMMPS,uptime,duration1,debug);
+  av(speedMMPS,uptime,duration1,debug);
   g(speedMMPS,uptime,duration2,debug);
   re(speedMMPS,uptime,duration1,debug);
   d(speedMMPS,uptime,duration2,debug); 
@@ -232,8 +232,12 @@ void rectanglesansrotation(int tmpslargeur,int tmpslongueur){
 void cercle(){
   wheel1.advancePWM(55);
   wheel2.advancePWM(55);
-  wheel3.backoffPWM(3);
-  wheel4.backoffPWM(3);
+  wheel3.backoffPWM(10);
+  wheel4.backoffPWM(10);
   delay(14000);
+  wheel1.advancePWM(0);
+  wheel2.advancePWM(0);
+  wheel3.backoffPWM(0);
+  wheel4.backoffPWM(0);
 }
  
