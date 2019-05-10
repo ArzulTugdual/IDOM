@@ -1,3 +1,4 @@
+
 #include <PinChangeInt.h>
 #include <PinChangeIntConfig.h>
 #include <EEPROM.h>
@@ -6,11 +7,40 @@
 #include <PID_Beta6.h>
 #include <MotorWheel.h>
 #include <Omni4WD.h>
+
 #include <fuzzy_table.h>
 #include <PID_Beta6.h>
-#define boutonS1_5 A7
-int flag=1;
 
+
+/*
+
+            \                    /
+   wheel1   \                    /   wheel4
+   Left     \                    /   Right
+    
+    
+                              power switch
+    
+            /                    \
+   wheel2   /                    \   wheel3
+   Right    /                    \   Left
+
+ */
+
+/*
+irqISR(irq1,isr1);
+MotorWheel wheel1(5,4,12,13,&irq1);
+
+irqISR(irq2,isr2);
+MotorWheel wheel2(6,7,14,15,&irq2);
+
+irqISR(irq3,isr3);
+MotorWheel wheel3(9,8,16,17,&irq3);
+
+irqISR(irq4,isr4);
+MotorWheel wheel4(10,11,18,19,&irq4);
+ */
+ int compteur =0;
 irqISR(irq1,isr1);
 MotorWheel wheel1(3,2,4,5,&irq1);
 
@@ -22,72 +52,48 @@ MotorWheel wheel3(9,8,16,17,&irq3);
 
 irqISR(irq4,isr4);
 MotorWheel wheel4(10,7,18,19,&irq4);
+int value =0;
 
 Omni4WD Omni(&wheel1,&wheel2,&wheel3,&wheel4);
 
-void setup()
-{
-    TCCR1B=TCCR1B&0xf8|0x01;    // Pin9,Pin10 PWM 31250Hz
-    TCCR2B=TCCR2B&0xf8|0x01;    // Pin3,Pin11 PWM 31250Hz
-    Omni.PIDEnable(0.31,0.01,0,10);
+void setup() {
+  //TCCR0B=TCCR0B&0xf8|0x01;    // warning!! it will change millis()
+  TCCR1B=TCCR1B&0xf8|0x01;    // Pin9,Pin10 PWM 31250Hz
+  TCCR2B=TCCR2B&0xf8|0x01;    // Pin3,Pin11 PWM 31250Hz
 
-    pinMode(boutonS1_5,INPUT);  //pin correspondant aux boutons poussoirs S1 à S5
+  Omni.PIDEnable(0.31,0.01,0,10);
+    
 }
 
-int Bouton(){
-    int bouton = (analogRead(boutonS1_5)+66)/145;  //renvoie la valeur du bouton pressé
-    return bouton;
+void loop() {
+
+if(value==0){
+ carreavecrotation(4);
+ delay(1000);
+ triangle();
+ delay(1000);
+ cercle();
+ value ++;
+ }
+stopp();
+}
+ 
+void stopp(){
+  wheel1.advancePWM(0);
+  wheel2.advancePWM(0);
+  wheel3.advancePWM(0);
+  wheel4.advancePWM(0);
+  while(1){}
 }
 
-void loop()
-{
-    // lit la valeur du bouton pressé et le mémorise dans la variable bouton
-    int bouton = Bouton();
-
-    if(bouton==0){
-        flag=flag*(-1);
-    }
-    /*  Mode JOYSTICK   */
-    if(flag==-1){                 /* Bouton S1 */
-        //appel fonction joystick
-    }
-    /*  Mode BOUTONS   */
-    else if(flag==1){   
-    if(bouton==1){                /* Bouton S2 */
-        //appel fonction carré
-        carreavecrotation(4);
-        delay(1000);
-    }
-    else if(bouton==2){           /* Bouton S3 */
-        //appel fonction cercle
-        cercle();
-        delay(1000);
-    }
-    else if(bouton==3){           /* Bouton S4 */
-        //appel fonction triangle
-        triangle();
-        delay(1000);
-    }
-    else if(bouton==5){           /* Bouton S5 */
-        //appel fonction rect
-        rectanglesansrotation(2,4);
-        delay(1000);
-    }
-    else{
-      Serial.println("arrêt");
-      delay(1000);
-    }
-    }
-}
-
-/* Fonctions de déplacement du robot */
-void av(int speedMMPS,int uptime, int duration, boolean debug)
+ void av(int speedMMPS,int uptime, int duration, boolean debug)
  {
   Omni.setCarAdvance();
   Omni.setCarSpeedMMPS(speedMMPS,uptime);
   Omni.delayMS(duration,debug);
   Omni.setCarSlow2Stop(uptime);
  }
+
 void re(int speedMMPS,int uptime, int duration, boolean debug)
  {
   Omni.setCarBackoff();
@@ -95,7 +101,8 @@ void re(int speedMMPS,int uptime, int duration, boolean debug)
   Omni.delayMS(duration,debug);
   Omni.setCarSlow2Stop(uptime);
  }
-void d(int speedMMPS,int uptime, int duration, boolean debug)
+
+ void d(int speedMMPS,int uptime, int duration, boolean debug)
  {
   Omni.setCarRight();
   Omni.setCarSpeedMMPS(speedMMPS,uptime);
@@ -116,28 +123,40 @@ void td(int speedMMPS,int uptime, int duration, boolean debug)
   Omni.delayMS(duration,debug);
   Omni.setCarSlow2Stop(uptime);
  }
-
-/* Tourner en fonction de l'angle */
-void td(int taille)
+ void td(int taille)
  {
   int uptime =500;
   boolean debug = false;
   int speedMMPS = 37; 
   int duration = 3650 ;
   switch  (taille) {
-  case 90 :  
+    case 90 :  
   duration = 500; break;
-  case 45 :
-  duration =10; 
-  break;
-  default : break;
+    case 45 :
+  duration =10;
+  
+   break;
+   default : break;
+  
+
   }
   Omni.setCarRotateRight();
   Omni.setCarSpeedMMPS(speedMMPS,uptime);
   Omni.delayMS(duration,debug);
-  Omni.setCarSlow2Stop(uptime); 
+  Omni.setCarSlow2Stop(uptime);
+  
  }
-void tg(int taille)
+
+
+
+/*void tg(int speedMMPS,int uptime, int duration, boolean debug)
+ {
+  Omni.setCarRotateLeft();
+  Omni.setCarSpeedMMPS(speedMMPS,uptime);
+  Omni.delayMS(duration,debug);
+  Omni.setCarSlow2Stop(uptime);
+ }*/
+ void tg(int taille)
  {
   int uptime =500;
   boolean debug = false;
@@ -145,48 +164,50 @@ void tg(int taille)
   int duration =3600 ;
   switch  (taille) {
   case 90 : 
+
   duration = 500; break;
   case 45 :
   duration =10; break;
-  default :  break;
+   default :  break;
+
   }
   Omni.setCarRotateLeft();
   Omni.setCarSpeedMMPS(speedMMPS,uptime);
   Omni.delayMS(duration,debug);
-  Omni.setCarSlow2Stop(uptime); 
+  Omni.setCarSlow2Stop(uptime);
+  
  }
-void dhd(int speedMMPS,int uptime, int duration, boolean debug)
+ void dhd(int speedMMPS,int uptime, int duration, boolean debug)
  {
   Omni.setCarUpperRight();
   Omni.setCarSpeedMMPS(speedMMPS,uptime);
   Omni.delayMS(duration,debug);
   Omni.setCarSlow2Stop(uptime);
  }
-void dbd(int speedMMPS,int uptime, int duration, boolean debug)
+ void dbd(int speedMMPS,int uptime, int duration, boolean debug)
  {
   Omni.setCarLowerRight();
   Omni.setCarSpeedMMPS(speedMMPS,uptime);
   Omni.delayMS(duration,debug);
   Omni.setCarSlow2Stop(uptime);
  }
-void dhg(int speedMMPS,int uptime, int duration, boolean debug)
+ void dhg(int speedMMPS,int uptime, int duration, boolean debug)
  {
   Omni.setCarUpperLeft();
   Omni.setCarSpeedMMPS(speedMMPS,uptime);
   Omni.delayMS(duration,debug);
   Omni.setCarSlow2Stop(uptime);
  }
-void dbg(int speedMMPS,int uptime, int duration, boolean debug)
+ void dbg(int speedMMPS,int uptime, int duration, boolean debug)
  {
   Omni.setCarLowerLeft();
   Omni.setCarSpeedMMPS(speedMMPS,uptime);
   Omni.delayMS(duration,debug);
   Omni.setCarSlow2Stop(uptime);
  }
+ void carresansrotation(int tpscote){
 
-/* Fonctions correspondant aux figures */
-void carresansrotation(int tpscote){
-  const int speedMMPS=40;
+ const int speedMMPS=40;
   const int uptime=500;
   const int duration=tpscote*1000-uptime;
   const boolean debug=false;
@@ -194,54 +215,72 @@ void carresansrotation(int tpscote){
   g(speedMMPS,uptime,duration,debug);
   re(speedMMPS,uptime,duration,debug);
   d(speedMMPS,uptime,duration,debug); 
-}
-void triangle (){
+ }
+
+ void triangle (){
+
 const int speedMMPS=40;
   const int uptime=500;
   const int duration=2500;
-  const boolean debug=false; 
+  const boolean debug=false;
+  
+  td(45);
+  td(90);
+  
+  av(speedMMPS,uptime,duration,debug);
+  td(90);
+  av(speedMMPS,uptime,duration,debug);
   td(45);
   td(90);
   av(speedMMPS,uptime,duration,debug);
-  td(90);
-  av(speedMMPS,uptime,duration,debug);
-  td(45);
-  td(90);
-  av(speedMMPS,uptime,duration,debug);
-}
-void carreavecrotation(int tpscote){
-  const int speedMMPS=40;
+  
+ }
+  void carreavecrotation(int tpscote){
+
+
+ const int speedMMPS=40;
   const int uptime=500;
   const int duration=tpscote*1000-uptime;
   const boolean debug=false;
-  av(speedMMPS,uptime,duration,debug);
+ 
+   av(speedMMPS,uptime,duration,debug);
   td(90);
   av(speedMMPS,uptime,duration,debug);
-  td(90);
+   td(90);
   av(speedMMPS,uptime,duration,debug);
-  td(90);
+   td(90);
   av(speedMMPS,uptime,duration,debug);
-}
-void rectanglesansrotation(int tmpslargeur,int tmpslongueur){
-  const int speedMMPS=40;
+ }
+ //pour le rond voir les choses deja faite dans R2wd
+ 
+ void rectanglesansrotation(int tmpslargeur,int tmpslongueur){
+
+
+ const int speedMMPS=40;
   const int uptime=500;
-  const int duration1=tmpslargeur*1000-uptime;
-  const int duration2=tmpslongueur*1000-uptime;
+
+  const int duration1=tmpslargeur-uptime;
+   const int duration2=tmpslongueur-uptime;
   const boolean debug=false;
-  av(speedMMPS,uptime,duration1,debug);
+    av(speedMMPS,uptime,duration1,debug);
   g(speedMMPS,uptime,duration2,debug);
   re(speedMMPS,uptime,duration1,debug);
   d(speedMMPS,uptime,duration2,debug); 
  }
-void cercle(){
-  wheel1.advancePWM(55);
+  void cercle(){
+ 
+
+ 
+  
+  
+
+ wheel1.advancePWM(55);
   wheel2.advancePWM(55);
-  wheel3.backoffPWM(10);
-  wheel4.backoffPWM(10);
-  delay(14000);
-  wheel1.advancePWM(0);
-  wheel2.advancePWM(0);
-  wheel3.backoffPWM(0);
-  wheel4.backoffPWM(0);
-}
+  wheel3.backoffPWM(3);
+  wheel4.backoffPWM(3);
+ delay(14000);
+
+ 
+
+  }
  

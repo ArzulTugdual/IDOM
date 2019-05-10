@@ -16,7 +16,6 @@ TKLed xLed(O0), yLed(O1);     // creating the objects 'xLed' & 'yLed' that both 
 /*variables*/
 int x = 0;      // a variable for the Joystick's x value
 int y = 0;      // a variable for the Joystick's y value
-float t = 0.0         // température mesurée
 
 void setup() 
 {
@@ -26,10 +25,7 @@ void setup()
   /*initialisation des PIN*/
   //capteur ultrason
   pinMode(PIN_ultrason, OUTPUT);
-  digitalWrite(PIN_ultrason, LOW);
-  
-  //capteur température
-  
+  digitalWrite(PIN_ultrason, LOW);  
 }
 
 void loop()
