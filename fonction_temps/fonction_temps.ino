@@ -35,7 +35,6 @@ void setup()
   Omni.PIDEnable(0.31,0.01,0,10);
 
   t0 = millis();
-  
   av(40);
   etatEnCours=1;
 }
@@ -47,11 +46,12 @@ void loop()
   {
     switch(figure)
     {
-      case 0: etatEnCours = carreSansRotation(etatEnCours); break;
+      case 0: etatEnCours = carreSansRotation(etatEnCours); break;  //fugure en cours: carré
       default: stopp(); break;
     }
     t0=t;
   }
+  delay(100);
 }
 
 /**
@@ -60,15 +60,21 @@ void loop()
  */
 int carreSansRotation(int etat)
 {
-  int vitessePWM =40;
+  int vitessePWM = 40;
   stopp();
+  //passe d'un "etat" à l'"etat" suivant
   switch(etat)
   {
     case 0: av(vitessePWM); break;
     case 1: d(vitessePWM); break;
     case 2: re(vitessePWM); break;
     case 3: g(vitessePWM); break;
-    default: stopp(); break;
+    default:
+    {
+      stopp(); 
+      figure++; //change de figure
+    }
+    break;
   }
   etat = (etat+1)%5;
   return etat;
@@ -77,8 +83,6 @@ int carreSansRotation(int etat)
 /*fonctions primaires du robot*/
 void av(int rapportPWM)
 {
-  /*Omni.setCarAdvance();
-  Omni.setCarSpeedMMPS(vitesse);*/
   wheel1.advancePWM(rapportPWM);
   wheel2.advancePWM(rapportPWM);
   wheel3.backoffPWM(rapportPWM);
@@ -86,17 +90,13 @@ void av(int rapportPWM)
 }
 void d(int rapportPWM)
 {
-  /*Omni.setCarRight();
-  Omni.setCarSpeedMMPS(vitesse);*/
-  wheel1.advancePWM(rapportPWM);
-  wheel2.backoffPWM(rapportPWM);
+  wheel1.backoffPWM(rapportPWM);
+  wheel2.advancePWM(rapportPWM);
   wheel3.advancePWM(rapportPWM);
   wheel4.backoffPWM(rapportPWM);
 }
 void re(int rapportPWM)
 {
-  /*Omni.setCarBackoff();
-  Omni.setCarSpeedMMPS(vitesse);*/
   wheel1.backoffPWM(rapportPWM);
   wheel2.backoffPWM(rapportPWM);
   wheel3.advancePWM(rapportPWM);
@@ -104,10 +104,8 @@ void re(int rapportPWM)
 }
 void g(int rapportPWM)
 {
-  /*Omni.setCarLeft();
-  Omni.setCarSpeedMMPS(vitesse);*/
-  wheel1.backoffPWM(rapportPWM);
-  wheel2.advancePWM(rapportPWM);
+  wheel1.advancePWM(rapportPWM);
+  wheel2.backoffPWM(rapportPWM);
   wheel3.backoffPWM(rapportPWM);
   wheel4.advancePWM(rapportPWM);
 }
