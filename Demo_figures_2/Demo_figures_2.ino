@@ -1,4 +1,3 @@
-
 #include <PinChangeInt.h>
 #include <PinChangeIntConfig.h>
 #include <EEPROM.h>
@@ -75,20 +74,15 @@ if(value==0){
  cercle();
  value ++;
  }
-
-stopp(5000);
-   
-   
-
-  
- }
+stopp();
+}
  
-void stopp(int tps){
-wheel1.advancePWM(0);
+void stopp(){
+  wheel1.advancePWM(0);
   wheel2.advancePWM(0);
   wheel3.advancePWM(0);
   wheel4.advancePWM(0);
-  delay(tps);
+  while(1){}
 }
 
  void av(int speedMMPS,int uptime, int duration, boolean debug)

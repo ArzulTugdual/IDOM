@@ -22,10 +22,12 @@ MotorWheel wheel4(10,7,18,19,&irq4);
 
 Omni4WD Omni(&wheel1,&wheel2,&wheel3,&wheel4);
 
-unsigned long seuil = 3000; //tps d'exécution d'un état
-int figure=0; //carré:0 triangle:1  ...
+const unsigned long seuilInit = 3000;
+unsigned long seuil = 0; //tps d'exécution d'un état
+int figure=0; //carré sans rotation:0 carré avec rotation:1 triangle:2  ...
 int t0; //temps de départ d'un état
 int etatEnCours=0; //0:stop 1:avant 2:droite 3:arrière 4:gauche
+int vitessePWM = 40;
 
 void setup()
 {
@@ -35,8 +37,6 @@ void setup()
   Omni.PIDEnable(0.31,0.01,0,10);
 
   t0 = millis();
-  av(40);
-  etatEnCours=1;
 }
 
 void loop()
@@ -46,22 +46,23 @@ void loop()
   {
     switch(figure)
     {
-      case 0: etatEnCours = carreSansRotation(etatEnCours); break;  //fugure en cours: carré
-      default: stopp(); break;
+      case 0: etatEnCours = carreSansRotation(etatEnCours); break;  //figure en cours: carré sans rotation
+      case 1: etatEnCours = carreAvecRotation(etatEnCours); break;  //figure en cours: carré avec rotation
+      case 2: etatEnCours = triangle(etatEnCours); break;  //figure en cours: triangle equilatéral
+      case 3: etatEnCours = cercle(etatEnCours);  break;  //figure en cours: cercle
+      default:  stopp();  break;
     }
-    t0=t;
+    t0=t; //réinitialisation du temps de départ de l'état
   }
-  delay(100);
 }
 
 /**
- * réalise un carré sans rotation
+ * change l'état du robot (avant, arrière...) en fonction de l'état suivant sur la figure "carré sans rotation"
  * @param etat: état du robot (0:stop 1:avant 2:droite 3:arrière 4:gauche)
  */
 int carreSansRotation(int etat)
 {
-  int vitessePWM = 40;
-  stopp();
+  seuil = seuilInit;
   //passe d'un "etat" à l'"etat" suivant
   switch(etat)
   {
@@ -71,8 +72,9 @@ int carreSansRotation(int etat)
     case 3: g(vitessePWM); break;
     default:
     {
-      stopp(); 
+      stopp();
       figure++; //change de figure
+      seuil = 1000; //délais avec la prochaine figure
     }
     break;
   }
@@ -80,6 +82,104 @@ int carreSansRotation(int etat)
   return etat;
 }
 
+/**
+ * change l'état du robot (avant, tourner droite) en fonction de l'état suivant sur la figure "carré avec rotation"
+ * @param etat: état du robot (0:stop   impaire(1-7):avant    paire(2-8):tourner droite)
+ */
+int carreAvecRotation(int etat)
+{
+  //passe d'un "etat" à l'"etat" suivant
+  switch(etat)
+  {
+    case 0:
+    case 2:
+    case 4:
+    case 6:
+    {
+      av(vitessePWM);
+      seuil = seuilInit; //rétablissement de la durée d'un état
+    }
+    break;
+    case 1: 
+    case 3:
+    case 5:
+    case 7:
+    {
+      td(90);
+      seuil = 0;  //état terminé donc seuil à 0
+    } 
+    break;
+    default:
+    {
+      stopp();
+      figure++; //change de figure
+      seuil = 1000; //délais avec la prochaine figure
+    }
+    break;
+  }
+  etat = (etat+1)%9;
+  return etat;
+} 
+
+/**
+ * change l'état du robot (avant, tourner droite) en fonction de l'état suivant sur la figure "triangle"
+ * @param etat: état du robot (0:stop   impaire(1-5):avant    paire(2-6):tourner droite)
+ */
+int triangle(int etat)
+{
+  //passe d'un "etat" à l'"etat" suivant
+  switch(etat)
+  {
+    case 0:
+    case 2:
+    case 4:
+    {
+      av(vitessePWM);
+      seuil = seuilInit; //rétablissement de la durée d'un état
+    }
+    break;
+    case 1: 
+    case 3:
+    case 5:
+    {
+      td(120);
+      seuil = 0;  //état terminé donc seuil à 0
+    } 
+    break;
+    default:
+    {
+      stopp();
+      figure++; //change de figure
+      seuil = 1000; //délais avec la prochaine figure
+    }
+    break;
+  }
+  etat = (etat+1)%7;
+  return etat;
+}
+/**
+ * change l'état du robot (rotation) en fonction de l'état suivant sur la figure "cercle"
+ * @param etat: état du robot (0:stop   1:rotation)
+ */
+int cercle(int etat)
+{
+  if(etat == 0)
+  {
+    seuil = 9750;
+    wheel1.advancePWM(55);
+    wheel2.advancePWM(55);
+    wheel3.backoffPWM(3);
+    wheel4.backoffPWM(3);
+  }
+  else
+  {
+    stopp();
+    figure++; //change de figure
+    seuil = 1000; //délais avec la prochaine figure
+  }
+  etat = (etat+1)%2;
+  return etat;
+}
 /*fonctions primaires du robot*/
 void av(int rapportPWM)
 {
@@ -109,10 +209,35 @@ void g(int rapportPWM)
   wheel3.backoffPWM(rapportPWM);
   wheel4.advancePWM(rapportPWM);
 }
+void td(int angle)
+{
+  wheel1.advancePWM(57);
+  wheel2.advancePWM(57);
+  wheel3.advancePWM(57);
+  wheel4.advancePWM(57);
+  if(angle >= 0)
+  {
+    delay((unsigned long)angle*(40*1.0/3));
+    stopp();
+  }
+}
+void tg(int angle)
+{
+  wheel1.backoffPWM(57);
+  wheel2.backoffPWM(57);
+  wheel3.backoffPWM(57);
+  wheel4.backoffPWM(57);
+  if(angle >= 0)
+  {
+    delay((unsigned long)angle*(40*1.0/3));
+    stopp();
+  }
+}
+/*stop le robot en avant*/
 void stopp()
 {
   wheel1.advancePWM(0);
-  wheel2.backoffPWM(0);
-  wheel3.advancePWM(0);
+  wheel2.advancePWM(0);
+  wheel3.backoffPWM(0);
   wheel4.backoffPWM(0);
 }
