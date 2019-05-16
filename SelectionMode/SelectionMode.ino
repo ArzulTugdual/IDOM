@@ -10,6 +10,8 @@
 #include <PID_Beta6.h>
 #define boutonS1_5 A7
 int flag=1;
+const byte PIN_ultrason = 2;     // Broche capteur ultrason (envoie/réception)
+const float seuil=50;   //seuil distance (mm)
 
 irqISR(irq1,isr1);
 MotorWheel wheel1(3,2,4,5,&irq1);
@@ -32,6 +34,9 @@ void setup()
     Omni.PIDEnable(0.31,0.01,0,10);
 
     pinMode(boutonS1_5,INPUT);  //pin correspondant aux boutons poussoirs S1 à S5
+
+    pinMode(PIN_ultrason, OUTPUT);
+    digitalWrite(PIN_ultrason, LOW); // La broche doit être à LOW au repos
 }
 
 int Bouton(){
@@ -43,7 +48,9 @@ void loop()
 {
     // lit la valeur du bouton pressé et le mémorise dans la variable bouton
     int bouton = Bouton();
-
+    //calcule la distance au mur
+    float distance_mur = mesure_distance();
+    
     if(bouton==0){
         flag=flag*(-1);
     }
@@ -55,25 +62,59 @@ void loop()
     else if(flag==1){   
     if(bouton==1){                /* Bouton S2 */
         //appel fonction carré
-        carreavecrotation(4);
+        if(distance_mur != 0 &&  distance_mur < seuil) stop_motors();
+        else if(distance_mur > seuil || distance_mur == 0) carreavecrotation(4);
         delay(1000);
     }
     else if(bouton==2){           /* Bouton S3 */
         //appel fonction cercle
-        cercle();
+        if(distance_mur != 0 &&  distance_mur < seuil) stop_motors();
+        else if(distance_mur > seuil || distance_mur == 0) cercle();
         delay(1000);
     }
     else if(bouton==3){           /* Bouton S4 */
         //appel fonction triangle
-        triangle();
+        if(distance_mur != 0 &&  distance_mur < seuil) stop_motors();
+        else if(distance_mur > seuil || distance_mur == 0) triangle();
         delay(1000);
     }
     else if(bouton==5){           /* Bouton S5 */
-        //appel fonction rect
-        rectanglesansrotation(2,4);
+        //appel fonction rectangle
+        if(distance_mur != 0 &&  distance_mur < seuil) stop_motors();
+        else if(distance_mur > seuil || distance_mur == 0) rectanglesansrotation(2,4);
         delay(1000);
     }
     }
+}
+
+/* Fonction qui mesure la distance entre le robot et le prochain obstacle devant*/
+float mesure_distance()
+{
+  //capteur parallax (3 broches)
+  /*création des variables de résultat*/
+  float measure, distance_mm;
+  //float c = 20.05*sqrt(temp)*pow(10,-3);   //vitesse du son dans l'air en fonction de la température (en mm/microsec)
+  float c = 0.34;
+  
+  pinMode(PIN_ultrason, OUTPUT);       //broche en sortie pour envoyer l'impulsion
+  digitalWrite(PIN_ultrason, LOW);     // La broche doit être à LOW au départ
+  
+  /*impulsion de 10 microsecondes*/
+  digitalWrite(PIN_ultrason, HIGH);      
+  delayMicroseconds(10);
+  digitalWrite(PIN_ultrason, LOW);       //envoi de l'onde sonore ___---___
+
+  pinMode(PIN_ultrason, INPUT);          //broche en entrée en attente de l'impulsion
+  
+  measure = pulseIn(PIN_ultrason, HIGH, 25000UL);  //attente du signal retour puis calcul du temps de réponse en microsec
+  return measure / 2.0 * c;               //MESURE en mm
+}
+void stop_motors()
+{
+  wheel1.advancePWM(0);
+  wheel2.advancePWM(0);
+  wheel3.backoffPWM(0);
+  wheel4.backoffPWM(0);
 }
 
 /* Fonctions de déplacement du robot */
@@ -217,6 +258,7 @@ void carreavecrotation(int tpscote){
   av(speedMMPS,uptime,duration,debug);
   td(90);
   av(speedMMPS,uptime,duration,debug);
+  td(90);
 }
 void rectanglesansrotation(int tmpslargeur,int tmpslongueur){
   const int speedMMPS=40;
