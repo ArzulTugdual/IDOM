@@ -84,6 +84,10 @@ void loop()
         else if(distance_mur > seuil || distance_mur == 0) rectanglesansrotation(2,4);
         delay(1000);
     }
+    else{
+      Serial.println("arrêt");
+      delay(1000);
+    }
     }
 }
 
