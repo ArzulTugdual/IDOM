@@ -6,6 +6,7 @@
 #include <PID_Beta6.h>
 #include <MotorWheel.h>
 #include <Omni4WD.h>
+#define boutonS1_5 A7   //définit le pin des boutons
 
 irqISR(irq1,isr1);
 MotorWheel wheel1(3,2,4,5,&irq1);
@@ -22,12 +23,13 @@ MotorWheel wheel4(10,7,18,19,&irq4);
 
 Omni4WD Omni(&wheel1,&wheel2,&wheel3,&wheel4);
 
-const unsigned long seuilInit = 3000;
+unsigned long seuilInit = 3000;
 unsigned long seuil = 0; //tps d'exécution d'un état
-int figure=0; //carré sans rotation:0 carré avec rotation:1 triangle:2  ...
-int t0; //temps de départ d'un état
-int etatEnCours=0; //0:stop 1:avant 2:droite 3:arrière 4:gauche
-int vitessePWM = 40;
+unsigned long t0; //temps de départ d'un état
+unsigned long t;
+int figure=7; //carré sans rotation:0 carré avec rotation:1 triangle:2  ...
+int etatEnCours=0; //0:stop >0: différents états en fonction de la figure
+int vitessePWM = 40;  //vitesse de marche du robot
 
 void setup()
 {
@@ -36,14 +38,23 @@ void setup()
 
   Omni.PIDEnable(0.31,0.01,0,10);
 
+  pinMode(boutonS1_5,INPUT);  //pin correspondant aux boutons poussoirs S1 à S5
+  
   t0 = millis();
 }
 
 void loop()
 {
-  unsigned long t = millis();
-  if(t-t0>=seuil) //fin de l'état en cours -> changement d'état
+  t = millis();
+  int bouton = Bouton();
+  bool chang_fig = bouton <=5;
+  if(t-t0>=seuil || chang_fig) //fin de l'état en cours -> changement d'état OU changement manuel de la figure
   {
+    if(chang_fig)
+    {
+      figure = bouton;
+      etatEnCours = 0;
+    }
     switch(figure)
     {
       case 0: etatEnCours = carreSansRotation(etatEnCours); break;  //figure en cours: carré sans rotation
@@ -56,6 +67,15 @@ void loop()
   }
 }
 
+/**
+ * lit la valeur du pin des boutons poussoirs de la carte
+ */
+int Bouton()
+{
+  return (analogRead(boutonS1_5)+66)/145;  //renvoie la valeur du bouton pressé
+}
+
+/*figures*/
 /**
  * change l'état du robot (avant, arrière...) en fonction de l'état suivant sur la figure "carré sans rotation"
  * @param etat: état du robot (0:stop 1:avant 2:droite 3:arrière 4:gauche)
@@ -73,8 +93,8 @@ int carreSansRotation(int etat)
     default:
     {
       stopp();
-      figure++; //change de figure
       seuil = 1000; //délais avec la prochaine figure
+      figure = 10;  //empêche de touner la figure en boucle
     }
     break;
   }
@@ -92,17 +112,45 @@ int carreAvecRotation(int etat)
   switch(etat)
   {
     case 0:
+    {
+      av(vitessePWM);
+      seuil = seuilInit; //rétablissement de la durée d'un état
+    }
+    break;
     case 2:
+    {
+      av(vitessePWM);
+      seuil = seuilInit; //rétablissement de la durée d'un état
+    }
+    break;
     case 4:
+    {
+      av(vitessePWM);
+      seuil = seuilInit; //rétablissement de la durée d'un état
+    }
+    break;
     case 6:
     {
       av(vitessePWM);
       seuil = seuilInit; //rétablissement de la durée d'un état
     }
     break;
-    case 1: 
+    case 1:
+    {
+    td(90);
+    seuil = 0;  //état terminé donc seuil à 0
+    } 
     case 3:
+    {
+    td(90);
+    seuil = 0;  //état terminé donc seuil à 0
+    } 
     case 5:
+    {
+    td(90);
+    seuil = 0;  //état terminé donc seuil à 0
+    } 
+    break;
     case 7:
     {
       td(90);
@@ -112,8 +160,8 @@ int carreAvecRotation(int etat)
     default:
     {
       stopp();
-      figure++; //change de figure
       seuil = 1000; //délais avec la prochaine figure
+      figure = 10;  //empêche de touner la figure en boucle
     }
     break;
   }
@@ -131,15 +179,31 @@ int triangle(int etat)
   switch(etat)
   {
     case 0:
+    {
+      av(vitessePWM);
+      seuil = seuilInit; //rétablissement de la durée d'un état
+    }
     case 2:
+    {
+      av(vitessePWM);
+      seuil = seuilInit; //rétablissement de la durée d'un état
+    }
     case 4:
     {
       av(vitessePWM);
       seuil = seuilInit; //rétablissement de la durée d'un état
     }
     break;
-    case 1: 
+    case 1:
+    {
+      td(120);
+      seuil = 0;  //état terminé donc seuil à 0
+    } 
     case 3:
+    {
+      td(120);
+      seuil = 0;  //état terminé donc seuil à 0
+    }
     case 5:
     {
       td(120);
@@ -149,8 +213,8 @@ int triangle(int etat)
     default:
     {
       stopp();
-      figure++; //change de figure
       seuil = 1000; //délais avec la prochaine figure
+      figure = 10;  //empêche de touner la figure en boucle
     }
     break;
   }
@@ -174,12 +238,13 @@ int cercle(int etat)
   else
   {
     stopp();
-    figure++; //change de figure
     seuil = 1000; //délais avec la prochaine figure
+    figure = 10;  //empêche de touner la figure en boucle
   }
   etat = (etat+1)%2;
   return etat;
 }
+
 /*fonctions primaires du robot*/
 void av(int rapportPWM)
 {
@@ -217,7 +282,7 @@ void td(int angle)
   wheel4.advancePWM(57);
   if(angle >= 0)
   {
-    delay((unsigned long)angle*(40*1.0/3));
+    delay((unsigned long)angle*(5013*1.0/360));
     stopp();
   }
 }
@@ -229,7 +294,7 @@ void tg(int angle)
   wheel4.backoffPWM(57);
   if(angle >= 0)
   {
-    delay((unsigned long)angle*(40*1.0/3));
+    delay((unsigned long)angle*(5013*1.0/360));
     stopp();
   }
 }
