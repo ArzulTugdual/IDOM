@@ -59,20 +59,24 @@ void loop()
 {
   t = millis();
   int bouton = Bouton();
-  bool chang_fig = bouton <=5;
-  if(mesure_distance()<distanceMin)
+  bool chang_fig = bouton<=5;
+  if(mesure_distance()<distanceMin) //obstacle
   {
     stopp();
-    delay(250);
-    td(90);
+    delay(1000);
+    td(90); //état stop à la fin
+    etatEnCours = 0;  //retour au début de la figure
+    t0 = t; //réinitialisation du temps de départ de l'état
+    seuil = 1000;  //1 sec d'arrêt
   }
-  if(t-t0>=seuil || chang_fig) //fin de l'état en cours -> changement d'état OU changement manuel de la figure
+  if(chang_fig) //changement manuel de la figure
   {
-    if(chang_fig)
-    {
-      figure = bouton;
-      etatEnCours = 0;
-    }
+    figure = bouton;
+    etatEnCours = 0;
+    t0=t; //réinitialisation du temps de départ de l'état
+  }
+  if(t-t0>=seuil) //fin de l'état en cours -> changement d'état
+  {
     switch(figure)
     {
       case 0: etatEnCours = carreSansRotation(etatEnCours); break;  //figure en cours: carré sans rotation
@@ -127,6 +131,8 @@ int Bouton()
  */
 int carreSansRotation(int etat)
 {
+  stopp();
+  delay(100);
   seuil = seuilInit;
   //passe d'un "etat" à l'"etat" suivant
   switch(etat)
@@ -153,27 +159,14 @@ int carreSansRotation(int etat)
  */
 int carreAvecRotation(int etat)
 {
+  stopp();
+  delay(100);
   //passe d'un "etat" à l'"etat" suivant
   switch(etat)
   {
     case 0:
-      {
-      av(vitessePWM);
-      seuil = seuilInit; //rétablissement de la durée d'un état
-      }
-      break;
     case 2:
-      {
-      av(vitessePWM);
-      seuil = seuilInit; //rétablissement de la durée d'un état
-      }
-      break;
     case 4:
-      {
-      av(vitessePWM);
-      seuil = seuilInit; //rétablissement de la durée d'un état
-      }
-      break;
     case 6:
       {
       av(vitessePWM);
@@ -181,23 +174,8 @@ int carreAvecRotation(int etat)
       }
       break;
     case 1:
-      {
-      td(90);
-      seuil = 0;  //état terminé donc seuil à 0
-      }
-      break;
     case 3:
-      {
-      td(90);
-      seuil = 0;  //état terminé donc seuil à 0
-      }
-      break; 
     case 5:
-      {
-      td(90);
-      seuil = 0;  //état terminé donc seuil à 0
-      } 
-      break;
     case 7:
       {
       td(90);
@@ -222,21 +200,13 @@ int carreAvecRotation(int etat)
  */
 int triangle(int etat)
 {
+  stopp();
+  delay(100);
   //passe d'un "etat" à l'"etat" suivant
   switch(etat)
   {
     case 0:
-      {
-      av(vitessePWM);
-      seuil = seuilInit; //rétablissement de la durée d'un état
-      }
-      break;
     case 2:
-      {
-      av(vitessePWM);
-      seuil = seuilInit; //rétablissement de la durée d'un état
-      }
-      break;
     case 4:
       {
       av(vitessePWM);
@@ -244,17 +214,7 @@ int triangle(int etat)
       }
       break;
     case 1:
-      {
-      td(120);
-      seuil = 0;  //état terminé donc seuil à 0
-      }
-      break;
     case 3:
-      {
-      td(120);
-      seuil = 0;  //état terminé donc seuil à 0
-      }
-      break;
     case 5:
       {
       td(120);
@@ -278,6 +238,8 @@ int triangle(int etat)
  */
 int cercle(int etat)
 {
+  stopp();
+  delay(100);
   if(etat == 0)
   {
     seuil = 9750;
