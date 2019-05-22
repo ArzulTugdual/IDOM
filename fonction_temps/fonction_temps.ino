@@ -29,13 +29,14 @@ unsigned long seuil = 0; //tps d'exécution d'un état
 unsigned long t0; //temps de départ d'un état
 unsigned long t;
 
-int figure=7; //carré sans rotation:0 carré avec rotation:1 triangle:2  ...
+int figure=10; //carré sans rotation:0 carré avec rotation:1 triangle:2  ...
 int etatEnCours=0; //0:stop >0: différents états en fonction de la figure
 int vitessePWM = 40;  //vitesse de marche du robot
 
 /*capteur ultrason*/
 const byte PIN = 6;     // Broche capteur ultrason (envoie/réception) attention, pin 6 car non utilisé par le robot
 float distanceMin = 300; //distance min à un obstacle
+
 void setup()
 {
   /*robot*/
@@ -79,9 +80,9 @@ void loop()
   {
     switch(figure)
     {
-      case 0: etatEnCours = carreSansRotation(etatEnCours); break;  //figure en cours: carré sans rotation
-      case 1: etatEnCours = carreAvecRotation(etatEnCours); break;  //figure en cours: carré avec rotation
-      case 2: etatEnCours = triangle(etatEnCours); break;  //figure en cours: triangle equilatéral
+      case 0: etatEnCours = carreSansRotation(etatEnCours, seuilInit); break;  //figure en cours: carré sans rotation
+      case 1: etatEnCours = carreAvecRotation(etatEnCours, 2000); break;  //figure en cours: carré avec rotation
+      case 2: etatEnCours = triangle(etatEnCours, 4000); break;  //figure en cours: triangle equilatéral
       case 3: etatEnCours = cercle(etatEnCours);  break;  //figure en cours: cercle
       default:  stopp();  break;
     }
@@ -128,12 +129,12 @@ int Bouton()
 /**
  * change l'état du robot (avant, arrière...) en fonction de l'état suivant sur la figure "carré sans rotation"
  * @param etat: état du robot (0:stop 1:avant 2:droite 3:arrière 4:gauche)
+ * @param tempsEtat: temps à un état(en ms)
  */
-int carreSansRotation(int etat)
+int carreSansRotation(int etat, unsigned long tempsEtat)
 {
   stopp();
   delay(100);
-  seuil = seuilInit;
   //passe d'un "etat" à l'"etat" suivant
   switch(etat)
   {
@@ -150,14 +151,16 @@ int carreSansRotation(int etat)
     break;
   }
   etat = (etat+1)%5;
+  seuil = tempsEtat;
   return etat;
 }
 
 /**
  * change l'état du robot (avant, tourner droite) en fonction de l'état suivant sur la figure "carré avec rotation"
  * @param etat: état du robot (0:stop   impaire(1-7):avant    paire(2-8):tourner droite)
+ * @param tempsEtat: temps à un état(en ms)
  */
-int carreAvecRotation(int etat)
+int carreAvecRotation(int etat, unsigned long tempsEtat)
 {
   stopp();
   delay(100);
@@ -170,7 +173,7 @@ int carreAvecRotation(int etat)
     case 6:
       {
       av(vitessePWM);
-      seuil = seuilInit; //rétablissement de la durée d'un état
+      seuil = tempsEtat; //rétablissement de la durée d'un état
       }
       break;
     case 1:
@@ -197,8 +200,9 @@ int carreAvecRotation(int etat)
 /**
  * chawnge l'état du robot (avant, tourner droite) en fonction de l'état suivant sur la figure "triangle"
  * @param etat: état du robot (0:stop   impaire(1-5):avant    paire(2-6):tourner droite)
+ * @param tempsEtat: temps à un état(en ms)
  */
-int triangle(int etat)
+int triangle(int etat, unsigned long tempsEtat)
 {
   stopp();
   delay(100);
@@ -210,7 +214,7 @@ int triangle(int etat)
     case 4:
       {
       av(vitessePWM);
-      seuil = seuilInit; //rétablissement de la durée d'un état
+      seuil = tempsEtat; //rétablissement de la durée d'un état
       }
       break;
     case 1:
@@ -242,7 +246,7 @@ int cercle(int etat)
   delay(100);
   if(etat == 0)
   {
-    seuil = 9750;
+    seuil = 10000;
     wheel1.advancePWM(55);
     wheel2.advancePWM(55);
     wheel3.backoffPWM(3);
@@ -295,7 +299,7 @@ void td(int angle)
   wheel4.advancePWM(50);
   if(angle >= 0)
   {
-    delay((unsigned long)angle*(5400*1.0/360));
+    delay((unsigned long)angle*(4700*1.0/360));
     stopp();
   }
 }
@@ -307,7 +311,7 @@ void tg(int angle)
   wheel4.backoffPWM(50);
   if(angle >= 0)
   {
-    delay((unsigned long)angle*(5400*1.0/360));
+    delay((unsigned long)angle*(4700*1.0/360));
     stopp();
   }
 }

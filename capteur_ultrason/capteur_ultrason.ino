@@ -9,7 +9,7 @@ void setup()
 
 void loop()
 {
-  Serial.print(mesure_distance(t));                 
+  Serial.print(mesure_distance());                 
   Serial.println("mm");                          //lecture de la valeur;
   delay(1000);
 }
