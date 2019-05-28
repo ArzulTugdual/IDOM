@@ -315,7 +315,7 @@ void td(int angle)
   wheel4.advancePWM(50);
   if(angle >= 0)
   {
-    delay((unsigned long)angle*(4700*1.0/360));
+    delay((unsigned long)angle*(530*1.0/36));
     stopp();
   }
 }
@@ -327,7 +327,7 @@ void tg(int angle)
   wheel4.backoffPWM(50);
   if(angle >= 0)
   {
-    delay((unsigned long)angle*(4700*1.0/360));
+    delay((unsigned long) angle*(530*1.0/36));
     stopp();
   }
 }
