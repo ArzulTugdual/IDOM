@@ -6,7 +6,19 @@
 #include <PID_Beta6.h>
 #include <MotorWheel.h>
 #include <Omni4WD.h>
-#define boutonS1_5 A7   //définit le pin des boutons
+
+#define boutonS1_5  A7    //définit le pin des boutons
+
+#define PIN         6     //pin du capteur ultrason
+#define distanceMin 300   //distance min à un obstacle
+
+#define rapportPWM  40    //rapport PWM du robot
+
+#define seuilInit   3000  //temps d'exécution initial
+
+#define dist_csr    500   //distance de chaque côté de la figure "carré sans rotation"
+#define dist_car    600   //distance de chaque côté de la figure "carré avec rotation"
+#define dist_tri    700   //distance de chaque côté de la figure "triangle"
 
 irqISR(irq1,isr1);
 MotorWheel wheel1(3,2,4,5,&irq1);
@@ -24,18 +36,17 @@ MotorWheel wheel4(10,7,18,19,&irq4);
 Omni4WD Omni(&wheel1,&wheel2,&wheel3,&wheel4);
 
 /*variables de temps*/
-unsigned long seuilInit = 3000;
 unsigned long seuil = 0; //tps d'exécution d'un état
 unsigned long t0; //temps de départ d'un état
 unsigned long t;
 
 int figure=10; //carré sans rotation:0 carré avec rotation:1 triangle:2  ...
 int etatEnCours=0; //0:stop >0: différents états en fonction de la figure
-int vitessePWM = 40;  //vitesse de marche du robot
+const float vitesseMMPS = -4*pow(10,-5)*pow(rapportPWM,2) + 0.0076*rapportPWM;
 
 /*capteur ultrason*/
-const byte PIN = 6;     // Broche capteur ultrason (envoie/réception) attention, pin 6 car non utilisé par le robot
-float distanceMin = 300; //distance min à un obstacle
+//const byte PIN = 6;     // Broche capteur ultrason (envoi/réception) attention, pin 6 car non utilisé par le robot
+//const float distanceMin = 300; //distance min à un obstacle
 
 void setup()
 {
@@ -72,18 +83,22 @@ void loop()
   }
   if(chang_fig) //changement manuel de la figure
   {
-    figure = bouton;
-    etatEnCours = 0;
+    figure = bouton;  //changement de figure
+    etatEnCours = 0;  //retour au début de la figure
     t0=t; //réinitialisation du temps de départ de l'état
+    stopp();
+    seuil = 200;
   }
   if(t-t0>=seuil) //fin de l'état en cours -> changement d'état
   {
+    stopp();
+    delay(150);
     switch(figure)
     {
-      case 0: etatEnCours = carreSansRotation(etatEnCours, seuilInit); break;  //figure en cours: carré sans rotation
-      case 1: etatEnCours = carreAvecRotation(etatEnCours, 2000); break;  //figure en cours: carré avec rotation
-      case 2: etatEnCours = triangle(etatEnCours, 4000); break;  //figure en cours: triangle equilatéral
-      case 3: etatEnCours = cercle(etatEnCours);  break;  //figure en cours: cercle
+      case 0: etatEnCours = chEt_csr(etatEnCours, dist_csr); break;  //figure en cours: carré sans rotation
+      case 1: etatEnCours = chEt_car(etatEnCours, dist_car); break;  //figure en cours: carré avec rotation
+      case 2: etatEnCours = chEt_tri(etatEnCours, dist_tri); break;  //figure en cours: triangle equilatéral
+      case 3: etatEnCours = chEt_cer(etatEnCours);  break;  //figure en cours: cercle
       default:  stopp();  break;
     }
     t0=t; //réinitialisation du temps de départ de l'état
@@ -129,19 +144,18 @@ int Bouton()
 /**
  * change l'état du robot (avant, arrière...) en fonction de l'état suivant sur la figure "carré sans rotation"
  * @param etat: état du robot (0:stop 1:avant 2:droite 3:arrière 4:gauche)
- * @param tempsEtat: temps à un état(en ms)
+ * @param longueur: longueur d'un côté de la figure(en mm)
  */
-int carreSansRotation(int etat, unsigned long tempsEtat)
+int chEt_csr(int etat, unsigned long longueur)
 {
-  stopp();
-  delay(100);
+  seuil = convertion_seuil(longueur);
   //passe d'un "etat" à l'"etat" suivant
   switch(etat)
   {
-    case 0: av(vitessePWM); break;
-    case 1: d(vitessePWM); break;
-    case 2: re(vitessePWM); break;
-    case 3: g(vitessePWM); break;
+    case 0: av(rapportPWM); break;
+    case 1: d(rapportPWM); break;
+    case 2: re(rapportPWM); break;
+    case 3: g(rapportPWM); break;
     default:
     {
       stopp();
@@ -151,7 +165,6 @@ int carreSansRotation(int etat, unsigned long tempsEtat)
     break;
   }
   etat = (etat+1)%5;
-  seuil = tempsEtat;
   return etat;
 }
 
@@ -160,10 +173,8 @@ int carreSansRotation(int etat, unsigned long tempsEtat)
  * @param etat: état du robot (0:stop   impaire(1-7):avant    paire(2-8):tourner droite)
  * @param tempsEtat: temps à un état(en ms)
  */
-int carreAvecRotation(int etat, unsigned long tempsEtat)
+int chEt_car(int etat, unsigned long longueur)
 {
-  stopp();
-  delay(100);
   //passe d'un "etat" à l'"etat" suivant
   switch(etat)
   {
@@ -172,8 +183,8 @@ int carreAvecRotation(int etat, unsigned long tempsEtat)
     case 4:
     case 6:
       {
-      av(vitessePWM);
-      seuil = tempsEtat; //rétablissement de la durée d'un état
+      av(rapportPWM);
+      seuil = convertion_seuil(longueur); //rétablissement de la durée d'un état
       }
       break;
     case 1:
@@ -202,10 +213,8 @@ int carreAvecRotation(int etat, unsigned long tempsEtat)
  * @param etat: état du robot (0:stop   impaire(1-5):avant    paire(2-6):tourner droite)
  * @param tempsEtat: temps à un état(en ms)
  */
-int triangle(int etat, unsigned long tempsEtat)
+int chEt_tri(int etat, unsigned long longueur)
 {
-  stopp();
-  delay(100);
   //passe d'un "etat" à l'"etat" suivant
   switch(etat)
   {
@@ -213,8 +222,8 @@ int triangle(int etat, unsigned long tempsEtat)
     case 2:
     case 4:
       {
-      av(vitessePWM);
-      seuil = tempsEtat; //rétablissement de la durée d'un état
+      av(rapportPWM);
+      seuil = convertion_seuil(longueur); //rétablissement de la durée d'un état
       }
       break;
     case 1:
@@ -240,10 +249,8 @@ int triangle(int etat, unsigned long tempsEtat)
  * change l'état du robot (rotation) en fonction de l'état suivant sur la figure "cercle"
  * @param etat: état du robot (0:stop   1:rotation)
  */
-int cercle(int etat)
+int chEt_cer(int etat)
 {
-  stopp();
-  delay(100);
   if(etat == 0)
   {
     seuil = 10000;
@@ -262,34 +269,43 @@ int cercle(int etat)
   return etat;
 }
 
+/**
+ * converti la distance en temps
+ * @param d: distance (en mm)
+ */
+unsigned long convertion_seuil(unsigned long d)
+{
+  return (unsigned long) d / vitesseMMPS;
+}
+
 /*fonctions primaires du robot*/
-void av(int rapportPWM)
+void av(int v)
 {
-  wheel1.advancePWM(rapportPWM);
-  wheel2.advancePWM(rapportPWM);
-  wheel3.backoffPWM(rapportPWM);
-  wheel4.backoffPWM(rapportPWM);
+  wheel1.advancePWM(v);
+  wheel2.advancePWM(v);
+  wheel3.backoffPWM(v);
+  wheel4.backoffPWM(v);
 }
-void d(int rapportPWM)
+void d(int v)
 {
-  wheel1.backoffPWM(rapportPWM);
-  wheel2.advancePWM(rapportPWM);
-  wheel3.advancePWM(rapportPWM);
-  wheel4.backoffPWM(rapportPWM);
+  wheel1.backoffPWM(v);
+  wheel2.advancePWM(v);
+  wheel3.advancePWM(v);
+  wheel4.backoffPWM(v);
 }
-void re(int rapportPWM)
+void re(int v)
 {
-  wheel1.backoffPWM(rapportPWM);
-  wheel2.backoffPWM(rapportPWM);
-  wheel3.advancePWM(rapportPWM);
-  wheel4.advancePWM(rapportPWM);
+  wheel1.backoffPWM(v);
+  wheel2.backoffPWM(v);
+  wheel3.advancePWM(v);
+  wheel4.advancePWM(v);
 }
-void g(int rapportPWM)
+void g(int v)
 {
-  wheel1.advancePWM(rapportPWM);
-  wheel2.backoffPWM(rapportPWM);
-  wheel3.backoffPWM(rapportPWM);
-  wheel4.advancePWM(rapportPWM);
+  wheel1.advancePWM(v);
+  wheel2.backoffPWM(v);
+  wheel3.backoffPWM(v);
+  wheel4.advancePWM(v);
 }
 void td(int angle)
 {
